@@ -7,6 +7,18 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1A4C2B'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         .fade-enter {
             opacity: 0;
@@ -22,31 +34,232 @@
 <body class="bg-gray-100">
     <div id="root"></div>
     <script type="text/babel">
+        const { AlertCircle, CheckCircle2, Loader2 } = window.lucide;
+
         function Quiz() {
             const [started, setStarted] = React.useState(false);
             const [currentQuestion, setCurrentQuestion] = React.useState(0);
-            
+            const [answers, setAnswers] = React.useState({});
+            const [userInput, setUserInput] = React.useState('');
+            const [showResults, setShowResults] = React.useState(false);
+            const [loading, setLoading] = React.useState(false);
+            const [showHint, setShowHint] = React.useState(false);
+
+            const questions = [
+                { 
+                    id: 1, 
+                    text: "What's 4+4?", 
+                    answer: "8",
+                    difficulty: "easy",
+                    hint: "Count up from 4 another 4 times"
+                },
+                { 
+                    id: 2, 
+                    text: "What's 19 x 3?", 
+                    answer: "57",
+                    difficulty: "medium",
+                    hint: "Break it down: (20 × 3) - (1 × 3)"
+                },
+                { 
+                    id: 3, 
+                    text: "Divide 117 by 33", 
+                    answer: "3.55",
+                    difficulty: "medium",
+                    hint: "Use long division or a calculator for this one"
+                },
+                { 
+                    id: 4, 
+                    text: "Solve: x/(x + 2) = 2", 
+                    answer: "-4",
+                    difficulty: "hard",
+                    hint: "Multiply both sides by (x + 2) to eliminate the fraction"
+                },
+                { 
+                    id: 5, 
+                    text: "A computer game load time has improved from 48 seconds to 30 seconds after an update. What is the percentage decrease in load time?", 
+                    answer: "37.5",
+                    difficulty: "hard",
+                    hint: "Use the formula: ((original - new) / original) × 100"
+                }
+            ];
+
+            const handleAnswer = () => {
+                setAnswers(prev => ({
+                    ...prev,
+                    [currentQuestion]: userInput.trim()
+                }));
+                setUserInput('');
+                setShowHint(false);
+                
+                if (currentQuestion === questions.length - 1) {
+                    setLoading(true);
+                    setTimeout(() => {
+                        setLoading(false);
+                        setShowResults(true);
+                    }, 1500);
+                } else {
+                    setCurrentQuestion(prev => prev + 1);
+                }
+            };
+
+            const getScore = () => {
+                return Object.entries(answers).filter(([_, answer]) => {
+                    const questionIndex = parseInt([_]);
+                    return Math.abs(parseFloat(answer) - parseFloat(questions[questionIndex].answer)) < 0.1;
+                }).length;
+            };
+
+            const resetQuiz = () => {
+                setStarted(false);
+                setCurrentQuestion(0);
+                setAnswers({});
+                setUserInput('');
+                setShowResults(false);
+                setLoading(false);
+                setShowHint(false);
+            };
+
             if (!started) {
                 return (
                     <div className="min-h-screen flex items-center justify-center p-4">
-                        <div className="fade-enter fade-enter-active bg-white p-8 rounded-lg shadow-lg text-center">
-                            <h1 className="text-3xl font-bold mb-4" style={{ color: '#1A4C2B' }}>Math Quiz</h1>
+                        <div className="fade-enter fade-enter-active bg-white p-8 rounded-lg shadow-lg text-center max-w-md w-full">
+                            <h1 className="text-3xl font-bold mb-4" style={{ color: '#1A4C2B' }}>Math Skills Assessment</h1>
+                            <p className="mb-8 text-gray-600">Test includes 5 questions of varying difficulty. Take your time and use hints if needed.</p>
                             <button 
-                                className="text-white px-4 py-2 rounded hover:opacity-90"
+                                className="text-white px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
                                 style={{ backgroundColor: '#1A4C2B' }}
                                 onClick={() => setStarted(true)}
                             >
-                                Start Quiz
+                                Begin Assessment
                             </button>
                         </div>
                     </div>
                 );
             }
 
+            if (loading) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4">
+                        <div className="fade-enter fade-enter-active bg-white p-8 rounded-lg shadow-lg text-center">
+                            <p className="mb-4 text-gray-600">Analyzing your performance...</p>
+                            <Loader2 className="animate-spin mx-auto" size={48} style={{ color: '#1A4C2B' }} />
+                        </div>
+                    </div>
+                );
+            }
+
+            if (showResults) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4">
+                        <div className="fade-enter fade-enter-active bg-white p-8 rounded-lg shadow-lg text-center max-w-md w-full">
+                            <h2 className="text-3xl font-bold text-gray-800 mb-4">Assessment Complete!</h2>
+                            <div className="text-6xl font-bold mb-4">
+                                <span style={{ color: '#1A4C2B' }}>{getScore()}</span>
+                                <span className="text-gray-400">/5</span>
+                            </div>
+                            
+                            <div className="mb-8 p-4 bg-blue-50 rounded-lg text-blue-900">
+                                <div className="flex items-start">
+                                    <AlertCircle className="h-5 w-5 mr-2 mt-0.5" />
+                                    <div>
+                                        <div className="font-semibold">Recommendation</div>
+                                        <div>
+                                            {getScore() >= 4 
+                                                ? "Great work! Additional tutoring may not be necessary at this time."
+                                                : "Consider scheduling a consultation to discuss targeted improvement areas."}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={resetQuiz}
+                                className="text-white px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
+                                style={{ backgroundColor: '#1A4C2B' }}
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            const question = questions[currentQuestion];
+            const difficultyColors = {
+                easy: 'bg-green-100',
+                medium: 'bg-yellow-100',
+                hard: 'bg-red-100'
+            };
+
             return (
                 <div className="min-h-screen flex items-center justify-center p-4">
-                    <div className="fade-enter fade-enter-active bg-white p-8 rounded-lg shadow-lg text-center">
-                        <h2 className="text-2xl font-bold mb-4">Quiz Started!</h2>
+                    <div className="fade-enter fade-enter-active max-w-2xl w-full space-y-6">
+                        <div className="bg-white p-4 rounded-lg shadow-lg">
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="text-lg font-semibold">Question {currentQuestion + 1} of {questions.length}</span>
+                            </div>
+                            <div className="w-full bg-gray-200 h-2 rounded-full">
+                                <div 
+                                    className="h-full rounded-full transition-all duration-500"
+                                    style={{ 
+                                        backgroundColor: '#1A4C2B',
+                                        width: `${(currentQuestion / questions.length) * 100}%`
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg shadow-lg">
+                            <div className="flex justify-between items-center mb-4">
+                                <span className={`px-3 py-1 rounded-full text-sm ${difficultyColors[question.difficulty]}`}>
+                                    {question.difficulty.charAt(0).toUpperCase() + question.difficulty.slice(1)}
+                                </span>
+                                <button
+                                    onClick={() => setShowHint(!showHint)}
+                                    className="text-gray-600 hover:text-gray-800"
+                                >
+                                    <AlertCircle size={20} />
+                                </button>
+                            </div>
+                            
+                            <h2 className="text-2xl mb-4 text-gray-800">{question.text}</h2>
+                            
+                            {showHint && (
+                                <div className="mb-4 p-4 bg-blue-50 rounded-lg text-blue-900">
+                                    <div className="flex items-start">
+                                        <AlertCircle className="h-5 w-5 mr-2 mt-0.5" />
+                                        <div>
+                                            <div className="font-semibold">Hint</div>
+                                            <div>{question.hint}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <input
+                                type="text"
+                                value={userInput}
+                                onChange={(e) => setUserInput(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:outline-none"
+                                style={{ 
+                                    '--tw-ring-color': '#1A4C2B',
+                                    borderColor: 'focus' ? '#1A4C2B' : undefined
+                                }}
+                                placeholder="Enter your answer..."
+                                onKeyPress={(e) => e.key === 'Enter' && handleAnswer()}
+                            />
+                        </div>
+
+                        <div className="flex justify-end">
+                            <button
+                                onClick={handleAnswer}
+                                className="text-white px-8 py-3 rounded-lg hover:opacity-90 transition-opacity flex items-center space-x-2"
+                                style={{ backgroundColor: '#1A4C2B' }}
+                            >
+                                <span>{currentQuestion === questions.length - 1 ? 'Finish' : 'Next'}</span>
+                                <CheckCircle2 size={20} />
+                            </button>
+                        </div>
                     </div>
                 </div>
             );
