@@ -7,34 +7,61 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/framer-motion/dist/framer-motion.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1A4C2B'
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body class="bg-gray-100">
     <div id="root"></div>
     <script type="text/babel">
+        const { motion, AnimatePresence } = window.framerMotion;
+        const { Loader2, AlertCircle, CheckCircle2 } = window.lucide;
+
         function Quiz() {
             const [started, setStarted] = React.useState(false);
+            const [currentQuestion, setCurrentQuestion] = React.useState(0);
             
             if (!started) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center">
-                        <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-                            <h1 className="text-3xl font-bold mb-4">Math Quiz</h1>
+                    <div className="min-h-screen flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-white p-8 rounded-lg shadow-lg text-center"
+                        >
+                            <h1 className="text-3xl font-bold mb-4" style={{ color: '#1A4C2B' }}>Math Quiz</h1>
                             <button 
-                                className="bg-blue-500 text-white px-4 py-2 rounded"
+                                className="text-white px-4 py-2 rounded transition-transform hover:scale-105"
+                                style={{ backgroundColor: '#1A4C2B' }}
                                 onClick={() => setStarted(true)}
                             >
                                 Start Quiz
                             </button>
-                        </div>
+                        </motion.div>
                     </div>
                 );
             }
 
             return (
-                <div className="min-h-screen flex items-center justify-center">
-                    <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white p-8 rounded-lg shadow-lg text-center"
+                    >
                         <h2 className="text-2xl font-bold mb-4">Quiz Started!</h2>
-                    </div>
+                        <AlertCircle className="w-8 h-8 mx-auto" />
+                    </motion.div>
                 </div>
             );
         }
