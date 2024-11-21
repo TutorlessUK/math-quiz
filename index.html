@@ -13,7 +13,37 @@
     <script type="text/babel">
         function Quiz() {
             const [started, setStarted] = React.useState(false);
+            const [currentQuestion, setCurrentQuestion] = React.useState(0);
             const [userInput, setUserInput] = React.useState('');
+            const [answers, setAnswers] = React.useState({});
+            const [showResults, setShowResults] = React.useState(false);
+
+            const questions = [
+                { text: "What's 4+4?", answer: "8" },
+                { text: "What's 19 x 3?", answer: "57" },
+                { text: "What's 117 ÷ 33?", answer: "3.55" }
+            ];
+
+            const handleAnswer = () => {
+                setAnswers(prev => ({
+                    ...prev,
+                    [currentQuestion]: userInput
+                }));
+                setUserInput('');
+                
+                if (currentQuestion === questions.length - 1) {
+                    setShowResults(true);
+                } else {
+                    setCurrentQuestion(prev => prev + 1);
+                }
+            };
+
+            const getScore = () => {
+                return Object.entries(answers).filter(([_, answer]) => {
+                    const questionIndex = parseInt([_]);
+                    return Math.abs(parseFloat(answer) - parseFloat(questions[questionIndex].answer)) < 0.1;
+                }).length;
+            };
 
             if (!started) {
                 return (
@@ -21,7 +51,7 @@
                         <h1 className="text-2xl mb-4">Math Quiz</h1>
                         <button 
                             onClick={() => setStarted(true)}
-                            className="bg-green-700 text-white px-4 py-2 rounded"
+                            className="bg-[#1A4C2B] text-white px-4 py-2 rounded"
                         >
                             Start
                         </button>
@@ -29,17 +59,40 @@
                 );
             }
 
+            if (showResults) {
+                return (
+                    <div className="p-8">
+                        <h2 className="text-2xl mb-4">Results</h2>
+                        <p>Score: {getScore()} out of {questions.length}</p>
+                        <button 
+                            onClick={() => {
+                                setStarted(false);
+                                setCurrentQuestion(0);
+                                setAnswers({});
+                                setShowResults(false);
+                            }}
+                            className="bg-[#1A4C2B] text-white px-4 py-2 rounded mt-4"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                );
+            }
+
             return (
                 <div className="p-8">
-                    <h2 className="text-xl mb-4">What's 2 + 2?</h2>
+                    <h2 className="text-xl mb-4">Question {currentQuestion + 1}: {questions[currentQuestion].text}</h2>
                     <input
                         type="text"
                         value={userInput}
                         onChange={e => setUserInput(e.target.value)}
                         className="border p-2 mr-2"
                     />
-                    <button className="bg-green-700 text-white px-4 py-2 rounded">
-                        Submit
+                    <button 
+                        onClick={handleAnswer}
+                        className="bg-[#1A4C2B] text-white px-4 py-2 rounded"
+                    >
+                        {currentQuestion === questions.length - 1 ? 'Finish' : 'Next'}
                     </button>
                 </div>
             );
