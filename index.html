@@ -7,6 +7,74 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes firework {
+            0% { transform: translate(var(--x), var(--initialY)); width: var(--initialSize); opacity: 1; }
+            50% { width: 0.5vmin; opacity: 1; }
+            100% { width: var(--finalSize); opacity: 0; }
+        }
+
+        .firework {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .firework::before, .firework::after {
+            content: "";
+            position: absolute;
+            top: var(--y);
+            left: var(--x);
+            transform: translate(-50%, -50%);
+            width: 0.5vmin;
+            aspect-ratio: 1;
+            background:
+                radial-gradient(circle, #ff0 0.2vmin, #0000 0) 50% 0,
+                radial-gradient(circle, #ff5900 0.3vmin, #0000 0) 0 50%,
+                radial-gradient(circle, #ff0 0.5vmin, #0000 0) 100% 50%,
+                radial-gradient(circle, #ff5900 0.2vmin, #0000 0) 50% 100%,
+                radial-gradient(circle, #ff0 0.3vmin, #0000 0) 50% 50%;
+            background-size: 0.5vmin 0.5vmin;
+            background-repeat: no-repeat;
+            animation: firework var(--duration) infinite;
+        }
+
+        .thumbs-up {
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+
+        .fade-enter {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .fade-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
     <div id="root"></div>
@@ -111,20 +179,42 @@
 
             if (showResults) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center p-4">
-                        <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md w-full">
+                    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+                        <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md w-full relative z-10">
                             <h2 className="text-3xl font-bold text-gray-800 mb-4">Assessment Complete!</h2>
                             <div className="text-6xl font-bold mb-4">
                                 <span style={{ color: '#1A4C2B' }}>{getScore()}</span>
                                 <span className="text-gray-400">/5</span>
                             </div>
                             
+                            {getScore() === 5 && (
+                                <>
+                                    <div className="firework" style={{"--x": "50%", "--y": "50%", "--duration": "1s"}}></div>
+                                    <div className="firework" style={{"--x": "20%", "--y": "40%", "--duration": "1.2s"}}></div>
+                                    <div className="firework" style={{"--x": "80%", "--y": "60%", "--duration": "1.5s"}}></div>
+                                    <div className="thumbs-up text-6xl mb-4">👍</div>
+                                    {[...Array(20)].map((_, i) => (
+                                        <div 
+                                            key={i}
+                                            className="confetti"
+                                            style={{
+                                                left: `${Math.random() * 100}%`,
+                                                backgroundColor: ['#ffd700', '#ff69b4', '#00ff00', '#ff0000'][Math.floor(Math.random() * 4)],
+                                                animationDelay: `${Math.random() * 3}s`
+                                            }}
+                                        />
+                                    ))}
+                                </>
+                            )}
+                            
                             <div className="mb-8 p-4 bg-blue-50 rounded-lg text-blue-900">
                                 <div className="font-semibold">Recommendation</div>
                                 <div>
-                                    {getScore() >= 4 
-                                        ? "Great work! Additional tutoring may not be necessary at this time."
-                                        : "Consider scheduling a consultation to discuss targeted improvement areas."}
+                                    {getScore() === 5 
+                                        ? "Perfect score! You're absolutely crushing it! 🎉"
+                                        : getScore() >= 4 
+                                            ? "Great work! Additional tutoring may not be necessary at this time."
+                                            : "Consider scheduling a consultation to discuss targeted improvement areas."}
                                 </div>
                             </div>
 
@@ -145,12 +235,6 @@
                 );
             }
 
-            const difficultyColors = {
-                easy: 'bg-green-100',
-                medium: 'bg-yellow-100',
-                hard: 'bg-red-100'
-            };
-
             if (loading) {
                 return (
                     <div className="min-h-screen flex items-center justify-center">
@@ -161,6 +245,12 @@
                     </div>
                 );
             }
+
+            const difficultyColors = {
+                easy: 'bg-green-100',
+                medium: 'bg-yellow-100',
+                hard: 'bg-red-100'
+            };
 
             return (
                 <div className="min-h-screen flex items-center justify-center p-4">
